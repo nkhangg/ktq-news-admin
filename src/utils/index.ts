@@ -74,3 +74,27 @@ export function base64ToFile(base64String: string, fileName: string): File {
 
     return new File([byteArray], fileName, { type: mimeType });
 }
+
+export function toSlug(str: string, maxLength = 60): string {
+    if (typeof str !== 'string') return ''; // Kiểm tra giá trị đầu vào
+
+    // Kiểm tra nếu môi trường hỗ trợ `normalize`
+    const normalizedStr = str.normalize ? str.normalize('NFD') : str;
+
+    return normalizedStr
+        .replace(/[\u0300-\u036f]/g, '') // Xóa dấu
+        .replace(/[^a-zA-Z0-9\s-]/g, '') // Chỉ giữ chữ cái, số, khoảng trắng và dấu "-"
+        .trim() // Xóa khoảng trắng đầu/cuối
+        .replace(/\s+/g, '-') // Thay khoảng trắng bằng "-"
+        .replace(/-+/g, '-') // Gộp nhiều dấu "-" thành 1
+        .toLowerCase() // Chuyển về chữ thường
+        .slice(0, maxLength) // Giới hạn độ dài
+        .replace(/^-+|-+$/g, ''); // Xóa "-" đầu/cuối
+}
+
+export function estimateReadingTimeInSeconds(content: string, wordsPerMinute = 200): number {
+    if (!content || typeof content !== 'string') return 0;
+
+    const wordCount = content.trim().split(/\s+/).length;
+    return Math.ceil((wordCount / wordsPerMinute) * 60);
+}

@@ -3,7 +3,7 @@ import { useForm, zodResolver } from '@mantine/form';
 import { useDisclosure, useHotkeys } from '@mantine/hooks';
 import { IconArrowLeft, IconRefresh } from '@tabler/icons-react';
 import MDEditor from '@uiw/react-md-editor';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import rehypeSanitize from 'rehype-sanitize';
 import { z } from 'zod';
@@ -14,6 +14,8 @@ import { ShowThumbnailModal, TagsInput } from '../components/posts';
 import { useCategories } from '../hooks';
 import Links from '../system/links';
 import { IPost } from '../system/type';
+import { estimateReadingTimeInSeconds, toSlug } from '../utils';
+import _ from 'lodash';
 
 const postSchema = z.object({
     title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -61,6 +63,8 @@ export default function UpdatePost() {
     const [showThumbnail, showThumbnailAction] = useDisclosure(false);
     const [categoryDrawerOpened, categoryDrawerAction] = useDisclosure(false);
 
+    const prevData = useRef<(Partial<IPost> & { category_id: string }) | null>(null);
+
     useHotkeys([['mod+M', mediaDrawerAction.open]]);
 
     const handleGetData = useCallback(async () => {
@@ -78,12 +82,37 @@ export default function UpdatePost() {
             category_id: String(response.data.category.id),
         });
 
+        prevData.current = {
+            ...response.data,
+            category_id: String(response.data.category.id),
+        };
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     useEffect(() => {
         handleGetData();
     }, [handleGetData]);
+
+    useEffect(() => {
+        if (_.isEqual(form.getValues(), prevData.current) || !form.values.title) return;
+
+        form.setFieldValue('slug', toSlug(form.values.title));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.values.title]);
+
+    const estimatedTime = useMemo(() => {
+        if (!form.values.content) return 0;
+        return estimateReadingTimeInSeconds(form.values.content);
+    }, [form.values.content]);
+
+    useEffect(() => {
+        if (_.isEqual(form.getValues(), prevData.current)) return;
+
+        if (form.values.ttr !== estimatedTime) {
+            form.setFieldValue('ttr', estimatedTime);
+        }
+    }, [estimatedTime, form]);
 
     return (
         <>

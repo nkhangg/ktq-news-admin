@@ -13,10 +13,11 @@ import rehypeSanitize from 'rehype-sanitize';
 import { createPost } from '../apis/post';
 import { useNavigate } from 'react-router';
 import Links from '../system/links';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import _ from 'lodash';
 import { useConfirmStore } from '../lib/zustand/use-confirm';
+import { estimateReadingTimeInSeconds, toSlug } from '../utils';
 
 const postSchema = z.object({
     title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -84,6 +85,23 @@ export default function CreatePost() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    useEffect(() => {
+        if (!form.values.title) return;
+        form.setFieldValue('slug', toSlug(form.values.title));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.values.title]);
+
+    const estimatedTime = useMemo(() => {
+        if (!form.values.content) return 0;
+        return estimateReadingTimeInSeconds(form.values.content);
+    }, [form.values.content]);
+
+    useEffect(() => {
+        if (form.values.ttr !== estimatedTime) {
+            form.setFieldValue('ttr', estimatedTime);
+        }
+    }, [estimatedTime, form]);
 
     return (
         <>

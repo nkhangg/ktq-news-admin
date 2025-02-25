@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { createCategory, updateCategory } from '../../apis/category';
 import { useConfirmStore } from '../../lib/zustand/use-confirm';
 import { ICategory } from '../../system/type';
+import { toSlug } from '../../utils';
 
 export interface ICategoryModlProps extends ModalProps {
     data: ICategory | null;
@@ -77,6 +78,13 @@ export default function CategoryModal({ data, onUpdated, ...props }: ICategoryMo
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.opened]);
+
+    useEffect(() => {
+        if (data && _.isEqual(form.getValues(), prevData.current)) return;
+
+        form.setFieldValue('slug', toSlug(form.values.name));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.values.name, data]);
 
     return (
         <Modal {...props} size="xl" title={<span className="text-xl font-bold">Category</span>} centered>

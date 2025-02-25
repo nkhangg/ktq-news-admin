@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { createTag, updateTag } from '../../apis/tag';
 import { useConfirmStore } from '../../lib/zustand/use-confirm';
 import { ITag } from '../../system/type';
+import { toSlug } from '../../utils';
 
 export interface ICategoryModlProps extends ModalProps {
     data: ITag | null;
@@ -76,6 +77,13 @@ export default function CategoryModal({ data, onUpdated, ...props }: ICategoryMo
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.opened]);
+
+    useEffect(() => {
+        if (data && _.isEqual(form.getValues(), prevData.current)) return;
+
+        form.setFieldValue('slug', toSlug(form.values.name));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.values.name, data]);
 
     return (
         <Modal {...props} size="xl" title={<span className="text-xl font-bold">Tag</span>} centered>
