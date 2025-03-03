@@ -25,7 +25,7 @@ export default function Posts() {
         },
         {
             key: 'thumbnail',
-            title: 'Title',
+            title: 'Thumbnail',
             typeFilter: 'text',
             renderRow: (row) => {
                 return <Avatar src={row.thumbnail} radius={'md'} size={'xl'} />;

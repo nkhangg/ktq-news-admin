@@ -36,7 +36,7 @@ export default function Feedbacks() {
         },
         {
             key: 'message',
-            title: 'Fullname',
+            title: 'Message',
             typeFilter: 'text',
         },
         {
